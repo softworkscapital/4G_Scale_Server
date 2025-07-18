@@ -21,15 +21,35 @@ app.post("/", async (req, res) => {
   console.log("now posting");
   const data = req.body;
 
-  console.log(data);
-
   if (!data) {
     return res.status(400).json({ message: "User not found" });
   }
 
   gasData.push(data);
+
+  const filePath = "gasData.txt";
+  const content = `[${new Date().toISOString()}] ${JSON.stringify(data)}\n`;
+
+  // Check if file exists, create if not, then append data
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      // File doesn't exist, create and write
+      fs.writeFile(filePath, content, (err) => {
+        if (err) console.error("Error creating file:", err);
+        else console.log("File created and data written.");
+      });
+    } else {
+      // File exists, just append
+      fs.appendFile(filePath, content, (err) => {
+        if (err) console.error("Error appending to file:", err);
+        else console.log("Data appended to file.");
+      });
+    }
+  });
+
   return res.sendStatus(200);
 });
+
 
 app.get("/data", (req, res) => {
   return res.json({ gasData });
