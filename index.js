@@ -39,19 +39,19 @@ app.get("/", (req, res) => {
   return res.send("4G Scale Server");
 });
 
-const options = {
-  cert: fs.readFileSync(
-    "/etc/letsencrypt/live/srv547457.hstgr.cloud/fullchain.pem"
-  ),
-  key: fs.readFileSync(
-    "/etc/letsencrypt/live/srv547457.hstgr.cloud/privkey.pem"
-  ),
-};
+// const options = {
+//   cert: fs.readFileSync(
+//     "/etc/letsencrypt/live/srv547457.hstgr.cloud/fullchain.pem"
+//   ),
+//   key: fs.readFileSync(
+//     "/etc/letsencrypt/live/srv547457.hstgr.cloud/privkey.pem"
+//   ),
+// };
 
-https.createServer(options, app).listen(PORT || "4002", () => {
-  console.log("app is listening to port" + PORT);
-});
-
-// app.listen(PORT, () => {
-//   console.log("app is listening to port" + " " + PORT);
+// https.createServer(options, app).listen(PORT || "4002", () => {
+//   console.log("app is listening to port" + PORT);
 // });
+
+app.listen(PORT, () => {
+  console.log("app is listening to port" + " " + PORT);
+});
