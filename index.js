@@ -10,68 +10,84 @@ const corsOptions = {
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type"],
 };
+
 const PORT = 4002;
+const LOG_FILE = "gasData.txt";
+
+// Middleware
 app.use(express.json());
 app.use(cors(corsOptions));
-// app.use(bodyParser.json({ limit: "100mb" }));
 
+// Internal memory storage (optional)
 let gasData = [];
 
+// ========= LOGGER SETUP ==========
+
+const originalConsoleLog = console.log;
+const originalConsoleError = console.error;
+
+const appendToLogFile = (label, message) => {
+  const timestamp = new Date().toISOString();
+  const logEntry = `------------\n[${timestamp}] ${label}:\n${message}\n`;
+  fs.appendFile(LOG_FILE, logEntry, (err) => {
+    if (err) originalConsoleError("❌ Failed to write to log file:", err.message);
+  });
+};
+
+console.log = (...args) => {
+  const message = args.map((arg) => (typeof arg === "string" ? arg : JSON.stringify(arg, null, 2))).join(" ");
+  appendToLogFile("📝 LOG", message);
+  originalConsoleLog(...args);
+};
+
+console.error = (...args) => {
+  const message = args.map((arg) => (typeof arg === "string" ? arg : JSON.stringify(arg, null, 2))).join(" ");
+  appendToLogFile("❌ ERROR", message);
+  originalConsoleError(...args);
+};
+
+// ========= ROUTES ==========
+
+// POST handler for saving gas data
 app.post("/", async (req, res) => {
   console.log("now posting");
   const data = req.body;
 
   if (!data) {
-    return res.status(400).json({ message: "User not found" });
+    const errorMessage = "User not found";
+    console.error(errorMessage);
+    return res.status(400).json({ message: errorMessage });
   }
 
   gasData.push(data);
 
-  const filePath = "gasData.txt";
-  const content = `[${new Date().toISOString()}] ${JSON.stringify(data)}\n`;
-
-  // Check if file exists, create if not, then append data
-  fs.access(filePath, fs.constants.F_OK, (err) => {
-    if (err) {
-      // File doesn't exist, create and write
-      fs.writeFile(filePath, content, (err) => {
-        if (err) console.error("Error creating file:", err);
-        else console.log("File created and data written.");
-      });
-    } else {
-      // File exists, just append
-      fs.appendFile(filePath, content, (err) => {
-        if (err) console.error("Error appending to file:", err);
-        else console.log("Data appended to file.");
-      });
-    }
-  });
+  // Save posted data to text file with formatting
+  appendToLogFile("✅ DATA RECEIVED", JSON.stringify(data, null, 2));
 
   return res.sendStatus(200);
 });
 
-
+// View all posted data
 app.get("/data", (req, res) => {
   return res.json({ gasData });
 });
 
+// Default route
 app.get("/", (req, res) => {
   return res.send("4G Scale Server");
 });
 
+// ========= HTTPS Support (commented out) ==========
 // const options = {
-//   cert: fs.readFileSync(
-//     "/etc/letsencrypt/live/srv547457.hstgr.cloud/fullchain.pem"
-//   ),
-//   key: fs.readFileSync(
-//     "/etc/letsencrypt/live/srv547457.hstgr.cloud/privkey.pem"
-//   ),
+//   cert: fs.readFileSync("/etc/letsencrypt/live/srv547457.hstgr.cloud/fullchain.pem"),
+//   key: fs.readFileSync("/etc/letsencrypt/live/srv547457.hstgr.cloud/privkey.pem"),
 // };
 
 // https.createServer(options, app).listen(PORT || "4002", () => {
-//   console.log("app is listening to port" + PORT);
+//   console.log("app is listening to port " + PORT);
 // });
 
+// ========= START SERVER ==========
 app.listen(PORT, () => {
-  console.log("app is listening to port" + " " + PORT);
+  console.log("app is listening to port " + PORT);
 });
