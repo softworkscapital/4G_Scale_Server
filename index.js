@@ -18,7 +18,10 @@ app.use(cors(corsOptions));
 let gasData = [];
 
 app.post("/", async (req, res) => {
+  console.log("now posting");
   const data = req.body;
+
+  console.log(data);
 
   if (!data) {
     return res.status(400).json({ message: "User not found" });
@@ -37,14 +40,17 @@ app.get("/", (req, res) => {
 });
 
 const options = {
-  cert: fs.readFileSync('/etc/letsencrypt/live/srv547457.hstgr.cloud/fullchain.pem'),
-  key: fs.readFileSync('/etc/letsencrypt/live/srv547457.hstgr.cloud/privkey.pem')
+  cert: fs.readFileSync(
+    "/etc/letsencrypt/live/srv547457.hstgr.cloud/fullchain.pem"
+  ),
+  key: fs.readFileSync(
+    "/etc/letsencrypt/live/srv547457.hstgr.cloud/privkey.pem"
+  ),
 };
 
-https.createServer(options, app).listen(PORT || '4002', () => {
-  console.log('app is listening to port' + PORT);
+https.createServer(options, app).listen(PORT || "4002", () => {
+  console.log("app is listening to port" + PORT);
 });
-
 
 // app.listen(PORT, () => {
 //   console.log("app is listening to port" + " " + PORT);
